@@ -1,4 +1,6 @@
 --Q.2 Write a query to calculate the total sales (Internet and Reseller) for each product category. ProductCategoryKey, EnglishProductCategoryName, and total sales amount of the consumer are displayed.
+
+
 SELECT PC.ProductCategoryKey, PC.EnglishProductCategoryName, ROUND(SUM(SM.SalesAmount),2) Total_Sales
 FROM dbo.DimProduct DP
 JOIN (SELECT ProductKey, SalesAmount
