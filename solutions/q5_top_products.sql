@@ -1,4 +1,6 @@
 --Q.5 Write a query to find the top 2 products with the highest quantity sold across both Internet and Reseller sales. Display product category name and total order quantity.
+
+
 SELECT TOP 2 PC.EnglishProductCategoryName, SUM(OrderQuantity) AS Total_OrderQuantity
 FROM dbo.DimProduct DP
 JOIN (SELECT OrderDateKey,ProductKey, OrderQuantity, SalesAmount
