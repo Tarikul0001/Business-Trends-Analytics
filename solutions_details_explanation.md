@@ -2,7 +2,7 @@
 
 ## **Q.1 Write a query to identify the top 10 over-70-year-old clients with the biggest internet sales. Name, age, phone number, email address, and total sales amount of the consumer are displayed.**
 
-**Purpose**
+**Purpose:**
 Identify the top 10 customers over 70 years old with the highest total internet sales, displaying their name, age, phone number, email address, and total sales amount.
 
 ```sql
