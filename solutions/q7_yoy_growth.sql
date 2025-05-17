@@ -10,3 +10,6 @@ UNION ALL
 SELECT OrderDateKey, SalesAmount
 FROM dbo.FactInternetSales) T
 JOIN dbo.DimDate D ON D.DateKey = T.OrderDateKey)
+
+SELECT Sales_2013, Sales_2012, ROUND ((Sales_2013-Sales_2012) / Sales_2012 * 100,2) AS YoYGrowthPercentage
+FROM CTE 
