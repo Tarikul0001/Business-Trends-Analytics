@@ -17,10 +17,23 @@ ORDER BY Total_Sales DESC
 
 **Explanation:**
 
-* Filters customers older than 70.
-* Joins them with Internet sales.
-* Sums the sales per customer.
-* Returns **top 10** customers with highest sales along with their name, address, phone, email, and age.
+Tables Involved:
+DimCustomer (C): Contains customer information (e.g., FirstName, LastName, BirthDate, AddressLine1, Phone, EmailAddress, CustomerKey).
+FactInternetSales (FIS): Contains internet sales transactions with fields like CustomerKey and SalesAmount.
+Key Components:
+Concatenation: C.FirstName + ' ' + C.LastName AS Customer_Name combines the first and last names into a single column.
+Age Calculation: DATEDIFF(YEAR, CONVERT(DATE, BirthDate), GETDATE()) calculates the customer’s age by finding the year difference between BirthDate and the current date (GETDATE()). The CONVERT(DATE, BirthDate) ensures the BirthDate is in a proper date format.
+Aggregation: ROUND(SUM(FIS.SalesAmount), 2) sums the SalesAmount for each customer and rounds to two decimal places.
+Filtering: WHERE DATEDIFF(YEAR, CONVERT(DATE, BirthDate), GETDATE()) > 70 restricts the results to customers over 70 years old.
+Grouping: GROUP BY C.CustomerKey, C.FirstName, C.LastName, C.BirthDate, C.AddressLine1, C.Phone, C.EmailAddress ensures aggregation by unique customers and includes all non-aggregated columns.
+Limiting: TOP 10 restricts the output to the top 10 customers.
+Sorting: ORDER BY Total_Sales DESC sorts results by total sales in descending order.
+Logic Flow:
+Join DimCustomer and FactInternetSales on CustomerKey to link customers with their internet sales.
+Filter for customers over 70 using the WHERE clause.
+Group by customer details to calculate total sales per customer.
+Select the top 10 based on total sales, displaying the required fields
+
 
 ---
 
