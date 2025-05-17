@@ -1,4 +1,6 @@
 --Q.3 Write a query to calculate total sales amount for each month in 2013. Display the year, month, and total sales amount.
+
+
 SELECT D.CalendarYear, D.MonthNumberOfYear, D.EnglishMonthName, ROUND(SUM(S.SalesAmount),2) Total_Sales
 FROM dbo.DimDate D 
 JOIN (SELECT OrderDateKey, SalesAmount
