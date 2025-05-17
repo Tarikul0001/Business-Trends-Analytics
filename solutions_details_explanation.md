@@ -15,7 +15,7 @@ GROUP BY C.CustomerKey, C.FirstName, C.LastName, C.BirthDate, C.AddressLine1, C.
 ORDER BY Total_Sales DESC
 ```
 
-**Explanation:**
+##**Explanation:**##
 
 **Tables Involved:**
 DimCustomer (C): Contains customer information (e.g., FirstName, LastName, BirthDate, AddressLine1, Phone, EmailAddress, CustomerKey).
