@@ -20,6 +20,7 @@ ORDER BY Total_Sales DESC
 **Tables Involved:**
 DimCustomer (C): Contains customer information (e.g., FirstName, LastName, BirthDate, AddressLine1, Phone, EmailAddress, CustomerKey).
 FactInternetSales (FIS): Contains internet sales transactions with fields like CustomerKey and SalesAmount.
+
 Key Components:
 Concatenation: C.FirstName + ' ' + C.LastName AS Customer_Name combines the first and last names into a single column.
 Age Calculation: DATEDIFF(YEAR, CONVERT(DATE, BirthDate), GETDATE()) calculates the customer’s age by finding the year difference between BirthDate and the current date (GETDATE()). The CONVERT(DATE, BirthDate) ensures the BirthDate is in a proper date format.
