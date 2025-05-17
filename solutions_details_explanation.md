@@ -17,7 +17,7 @@ ORDER BY Total_Sales DESC
 
 **Explanation:**
 
-**Tables Involved:
+**Tables Involved:**
 DimCustomer (C): Contains customer information (e.g., FirstName, LastName, BirthDate, AddressLine1, Phone, EmailAddress, CustomerKey).
 FactInternetSales (FIS): Contains internet sales transactions with fields like CustomerKey and SalesAmount.
 Key Components:
