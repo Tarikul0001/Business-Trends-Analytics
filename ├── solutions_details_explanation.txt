@@ -1,0 +1,412 @@
+Q.1: Top 10 Over-70-Year-Old Clients with Biggest Internet Sales
+Purpose: Identify the top 10 customers over 70 years old with the highest total internet sales, displaying their name, age, phone number, email address, and total sales amount.
+
+Query:
+
+sql
+
+Copy
+SELECT TOP 10 C.FirstName + ' ' + C.LastName AS Customer_Name, C.AddressLine1, 
+DATEDIFF(YEAR, CONVERT(DATE, BirthDate), GETDATE()) AS Age, C.Phone, C.EmailAddress,
+ROUND(SUM(FIS.SalesAmount), 2) AS Total_Sales
+FROM dbo.DimCustomer C
+JOIN dbo.FactInternetSales FIS ON C.CustomerKey = FIS.CustomerKey
+WHERE DATEDIFF(YEAR, CONVERT(DATE, BirthDate), GETDATE()) > 70
+GROUP BY C.CustomerKey, C.FirstName, C.LastName, C.BirthDate, C.AddressLine1, C.Phone, C.EmailAddress
+ORDER BY Total_Sales DESC
+Explanation:
+
+Tables Involved:
+DimCustomer (C): Contains customer information (e.g., FirstName, LastName, BirthDate, AddressLine1, Phone, EmailAddress, CustomerKey).
+FactInternetSales (FIS): Contains internet sales transactions with fields like CustomerKey and SalesAmount.
+Key Components:
+Concatenation: C.FirstName + ' ' + C.LastName AS Customer_Name combines the first and last names into a single column.
+Age Calculation: DATEDIFF(YEAR, CONVERT(DATE, BirthDate), GETDATE()) calculates the customer’s age by finding the year difference between BirthDate and the current date (GETDATE()). The CONVERT(DATE, BirthDate) ensures the BirthDate is in a proper date format.
+Aggregation: ROUND(SUM(FIS.SalesAmount), 2) sums the SalesAmount for each customer and rounds to two decimal places.
+Filtering: WHERE DATEDIFF(YEAR, CONVERT(DATE, BirthDate), GETDATE()) > 70 restricts the results to customers over 70 years old.
+Grouping: GROUP BY C.CustomerKey, C.FirstName, C.LastName, C.BirthDate, C.AddressLine1, C.Phone, C.EmailAddress ensures aggregation by unique customers and includes all non-aggregated columns.
+Limiting: TOP 10 restricts the output to the top 10 customers.
+Sorting: ORDER BY Total_Sales DESC sorts results by total sales in descending order.
+Logic Flow:
+Join DimCustomer and FactInternetSales on CustomerKey to link customers with their internet sales.
+Filter for customers over 70 using the WHERE clause.
+Group by customer details to calculate total sales per customer.
+Select the top 10 based on total sales, displaying the required fields.
+Output:
+Columns: Customer_Name, AddressLine1, Age, Phone, EmailAddress, Total_Sales.
+Example: "John Doe, 123 Main St, 72, 555-1234, john.doe@email.com, 15000.50".
+Notes:
+The DATEDIFF(YEAR, ...) function may slightly overestimate age if the customer’s birthday hasn’t occurred this year. For precision, a more complex age calculation could be used.
+Including CustomerKey in the GROUP BY ensures uniqueness, even if names are duplicated.
+Q.2: Total Sales for Each Product Category (Internet and Reseller)
+Purpose: Calculate the total sales (combining Internet and Reseller sales) for each product category, displaying the product category key, name, and total sales amount.
+
+Query:
+
+sql
+
+Copy
+SELECT PC.ProductCategoryKey, PC.EnglishProductCategoryName, ROUND(SUM(SM.SalesAmount), 2) Total_Sales
+FROM dbo.DimProduct DP
+JOIN (
+    SELECT ProductKey, SalesAmount
+    FROM dbo.FactResellerSales
+    UNION ALL
+    SELECT ProductKey, SalesAmount
+    FROM dbo.FactInternetSales
+) SM ON SM.ProductKey = DP.ProductKey
+JOIN dbo.DimProductSubcategory PS ON PS.ProductSubcategoryKey = DP.ProductSubcategoryKey
+JOIN dbo.DimProductCategory PC ON PC.ProductCategoryKey = PS.ProductCategoryKey
+GROUP BY PC.ProductCategoryKey, PC.EnglishProductCategoryName
+ORDER BY Total_Sales DESC
+Explanation:
+
+Tables Involved:
+DimProduct (DP): Contains product details (ProductKey, ProductSubcategoryKey).
+FactResellerSales: Contains reseller sales data (ProductKey, SalesAmount).
+FactInternetSales: Contains internet sales data (ProductKey, SalesAmount).
+DimProductSubcategory (PS): Links products to subcategories (ProductSubcategoryKey, ProductCategoryKey).
+DimProductCategory (PC): Contains category details (ProductCategoryKey, EnglishProductCategoryName).
+Key Components:
+Union:
+sql
+
+Copy
+SELECT ProductKey, SalesAmount FROM dbo.FactResellerSales
+UNION ALL
+SELECT ProductKey, SalesAmount FROM dbo.FactInternetSales
+Combines sales from both FactResellerSales and FactInternetSales into a single dataset (SM), including only ProductKey and SalesAmount. UNION ALL is used for performance, as it doesn’t remove duplicates (assumed unnecessary here).
+Joins:
+SM.ProductKey = DP.ProductKey: Links combined sales to products.
+PS.ProductSubcategoryKey = DP.ProductSubcategoryKey: Links products to subcategories.
+PC.ProductCategoryKey = PS.ProductCategoryKey: Links subcategories to categories.
+Aggregation: ROUND(SUM(SM.SalesAmount), 2) calculates total sales per category, rounded to two decimal places.
+Grouping: GROUP BY PC.ProductCategoryKey, PC.EnglishProductCategoryName groups results by category.
+Sorting: ORDER BY Total_Sales DESC sorts by total sales in descending order.
+Logic Flow:
+Combine internet and reseller sales using UNION ALL.
+Join the combined sales with DimProduct, DimProductSubcategory, and DimProductCategory to map sales to product categories.
+Aggregate sales by category and display the results.
+Output:
+Columns: ProductCategoryKey, EnglishProductCategoryName, Total_Sales.
+Example: "1, Bikes, 500000.75".
+Notes:
+The UNION ALL assumes no duplicate sales records across the two tables for the same ProductKey. If duplicates exist, UNION might be needed, but it’s slower.
+Including ProductCategoryKey in the GROUP BY ensures uniqueness, even if category names are duplicated.
+Q.3: Total Sales Amount for Each Month in 2013
+Purpose: Calculate the total sales amount (Internet and Reseller) for each month in 2013, displaying the year, month number, month name, and total sales.
+
+Query:
+
+sql
+
+Copy
+SELECT D.CalendarYear, D.MonthNumberOfYear, D.EnglishMonthName, ROUND(SUM(S.SalesAmount), 2) Total_Sales
+FROM dbo.DimDate D 
+JOIN (
+    SELECT OrderDateKey, SalesAmount
+    FROM dbo.FactResellerSales
+    UNION ALL
+    SELECT OrderDateKey, SalesAmount
+    FROM dbo.FactInternetSales
+) S ON S.OrderDateKey = D.DateKey
+WHERE D.CalendarYear = '2013'
+GROUP BY D.CalendarYear, D.MonthNumberOfYear, D.EnglishMonthName
+ORDER BY 2
+Explanation:
+
+Tables Involved:
+DimDate (D): Contains date details (DateKey, CalendarYear, MonthNumberOfYear, EnglishMonthName).
+FactResellerSales: Contains reseller sales (OrderDateKey, SalesAmount).
+FactInternetSales: Contains internet sales (OrderDateKey, SalesAmount).
+Key Components:
+Union:
+sql
+
+Copy
+SELECT OrderDateKey, SalesAmount FROM dbo.FactResellerSales
+UNION ALL
+SELECT OrderDateKey, SalesAmount FROM dbo.FactInternetSales
+Combines sales from both tables into a single dataset (S).
+Join: S.OrderDateKey = D.DateKey links sales to the date dimension.
+Filtering: WHERE D.CalendarYear = '2013' restricts results to 2013.
+Aggregation: ROUND(SUM(S.SalesAmount), 2) calculates total sales per month.
+Grouping: GROUP BY D.CalendarYear, D.MonthNumberOfYear, D.EnglishMonthName groups by year and month.
+Sorting: ORDER BY 2 sorts by MonthNumberOfYear (column 2) for chronological order.
+Logic Flow:
+Combine sales data from both sources.
+Join with DimDate to get month and year details.
+Filter for 2013 and aggregate sales by month.
+Display results in chronological order.
+Output:
+Columns: CalendarYear, MonthNumberOfYear, EnglishMonthName, Total_Sales.
+Example: "2013, 1, January, 10000.25".
+Notes:
+The query assumes OrderDateKey aligns with DateKey. If date formats differ, additional conversion may be needed.
+Sorting by MonthNumberOfYear ensures months appear in calendar order (1–12).
+Q.4: Top-Performing Sales Region in Each Country
+Purpose: Identify the top-performing sales region in each country based on total sales (Internet and Reseller), displaying the country, region, and total sales amount.
+
+Query:
+
+sql
+
+Copy
+WITH CTE AS (
+    SELECT T.SalesTerritoryCountry, T.SalesTerritoryRegion, T.Total_Sales,
+    RANK() OVER(PARTITION BY T.SalesTerritoryCountry ORDER BY T.Total_Sales DESC) AS RANK
+    FROM (
+        SELECT ST.SalesTerritoryRegion, ST.SalesTerritoryCountry, ROUND(SUM(S.SalesAmount), 2) Total_Sales
+        FROM dbo.DimSalesTerritory ST
+        JOIN (
+            SELECT SalesTerritoryKey, SalesAmount
+            FROM dbo.FactResellerSales
+            UNION ALL
+            SELECT SalesTerritoryKey, SalesAmount
+            FROM dbo.FactInternetSales
+        ) S ON S.SalesTerritoryKey = ST.SalesTerritoryKey
+        GROUP BY ST.SalesTerritoryRegion, ST.SalesTerritoryCountry
+    ) T
+)
+SELECT SalesTerritoryCountry, SalesTerritoryRegion, Total_Sales
+FROM CTE 
+WHERE RANK = 1
+ORDER BY Total_Sales DESC
+Explanation:
+
+Tables Involved:
+DimSalesTerritory (ST): Contains territory details (SalesTerritoryKey, SalesTerritoryCountry, SalesTerritoryRegion).
+FactResellerSales: Contains reseller sales (SalesTerritoryKey, SalesAmount).
+FactInternetSales: Contains internet sales (SalesTerritoryKey, SalesAmount).
+Key Components:
+Inner Subquery:
+sql
+
+Copy
+SELECT ST.SalesTerritoryRegion, ST.SalesTerritoryCountry, ROUND(SUM(S.SalesAmount), 2) Total_Sales
+FROM dbo.DimSalesTerritory ST
+JOIN (
+    SELECT SalesTerritoryKey, SalesAmount FROM dbo.FactResellerSales
+    UNION ALL
+    SELECT SalesTerritoryKey, SalesAmount FROM dbo.FactInternetSales
+) S ON S.SalesTerritoryKey = ST.SalesTerritoryKey
+GROUP BY ST.SalesTerritoryRegion, ST.SalesTerritoryCountry
+Combines sales, joins with DimSalesTerritory, and calculates total sales per region and country.
+CTE:
+sql
+
+Copy
+WITH CTE AS (
+    SELECT T.SalesTerritoryCountry, T.SalesTerritoryRegion, T.Total_Sales,
+    RANK() OVER(PARTITION BY T.SalesTerritoryCountry ORDER BY T.Total_Sales DESC) AS RANK
+    FROM (...)
+)
+Assigns a rank to each region within a country based on Total_Sales, with RANK() = 1 indicating the top region.
+Filtering: WHERE RANK = 1 selects only the top-ranked region per country.
+Sorting: ORDER BY Total_Sales DESC sorts results by total sales.
+Logic Flow:
+Combine sales data and aggregate by region and country.
+Use a CTE to rank regions within each country.
+Select the top region (RANK = 1) for each country.
+Output:
+Columns: SalesTerritoryCountry, SalesTerritoryRegion, Total_Sales.
+Example: "United States, Northwest, 200000.00".
+Notes:
+If multiple regions tie for the top sales in a country, RANK() will assign them the same rank, and all will appear in the output. Use ROW_NUMBER() for a single result per country.
+The query assumes valid SalesTerritoryKey mappings.
+Q.5: Top 2 Product Categories by Quantity Sold
+Purpose: Identify the top 2 product categories with the highest quantity sold (Internet and Reseller), displaying the category name and total order quantity.
+
+Query:
+
+sql
+
+Copy
+SELECT TOP 2 PC.EnglishProductCategoryName, SUM(OrderQuantity) AS Total_OrderQuantity
+FROM dbo.DimProduct DP
+JOIN (
+    SELECT OrderDateKey, ProductKey, OrderQuantity, SalesAmount
+    FROM dbo.FactResellerSales
+    UNION ALL
+    SELECT OrderDateKey, ProductKey, OrderQuantity, SalesAmount
+    FROM dbo.FactInternetSales
+) SM ON SM.ProductKey = DP.ProductKey
+JOIN dbo.DimProductSubcategory PS ON PS.ProductSubcategoryKey = DP.ProductSubcategoryKey
+JOIN dbo.DimProductCategory PC ON PC.ProductCategoryKey = PS.ProductCategoryKey
+GROUP BY PC.ProductCategoryKey, PC.EnglishProductCategoryName
+ORDER BY Total_OrderQuantity DESC
+Explanation:
+
+Tables Involved:
+Same as Q.2, with the addition of OrderQuantity from FactResellerSales and FactInternetSales.
+Key Components:
+Union: Combines OrderDateKey, ProductKey, OrderQuantity, and SalesAmount from both sales tables.
+Joins: Links sales to products, subcategories, and categories.
+Aggregation: SUM(OrderQuantity) calculates the total quantity sold per category.
+Limiting: TOP 2 restricts to the top 2 categories.
+Grouping: GROUP BY PC.ProductCategoryKey, PC.EnglishProductCategoryName groups by category.
+Sorting: ORDER BY Total_OrderQuantity DESC sorts by quantity.
+Logic Flow:
+Combine sales data, including quantities.
+Map to product categories via joins.
+Aggregate quantities by category and select the top 2.
+Output:
+Columns: EnglishProductCategoryName, Total_OrderQuantity.
+Example: "Bikes, 5000".
+Notes:
+The query focuses on OrderQuantity, not SalesAmount, unlike Q.2.
+Ties in quantity are resolved arbitrarily unless TOP 2 WITH TIES is used.
+Q.6: Sales and Quantity by Product Category and Year
+Purpose: Calculate total sales and quantity sold for each product category across all calendar years (Internet and Reseller), displaying year, category name, total sales, and total order quantity.
+
+Query:
+
+sql
+
+Copy
+SELECT D.CalendarYear, PC.EnglishProductCategoryName, ROUND(SUM(SM.SalesAmount), 2) Total_Sales, SUM(OrderQuantity) AS Total_OrderQuantity
+FROM dbo.DimProduct DP
+JOIN (
+    SELECT OrderDateKey, ProductKey, OrderQuantity, SalesAmount
+    FROM dbo.FactResellerSales
+    UNION ALL
+    SELECT OrderDateKey, ProductKey, OrderQuantity, SalesAmount
+    FROM dbo.FactInternetSales
+) SM ON SM.ProductKey = DP.ProductKey
+JOIN dbo.DimProductSubcategory PS ON PS.ProductSubcategoryKey = DP.ProductSubcategoryKey
+JOIN dbo.DimProductCategory PC ON PC.ProductCategoryKey = PS.ProductCategoryKey
+JOIN dbo.DimDate D ON D.DateKey = SM.OrderDateKey
+GROUP BY D.CalendarYear, PC.ProductCategoryKey, PC.EnglishProductCategoryName
+Explanation:
+
+Tables Involved:
+Same as Q.5, plus DimDate for CalendarYear.
+Key Components:
+Union: Combines sales and quantities from both tables.
+Joins: Links sales to products, categories, and dates.
+Aggregation: ROUND(SUM(SM.SalesAmount), 2) and SUM(OrderQuantity) calculate sales and quantities.
+Grouping: GROUP BY D.CalendarYear, PC.ProductCategoryKey, PC.EnglishProductCategoryName groups by year and category.
+Logic Flow:
+Combine sales data.
+Join with dimensions to get year and category details.
+Aggregate by year and category.
+Output:
+Columns: CalendarYear, EnglishProductCategoryName, Total_Sales, Total_OrderQuantity.
+Example: "2013, Bikes, 100000.50, 2000".
+Notes:
+No sorting is specified, so results may appear in any order.
+The query covers all years in the data.
+Q.7: Year-over-Year Sales Growth for 2013 vs. 2012
+Purpose: Calculate the year-over-year (YoY) sales growth percentage for 2013 compared to 2012, combining Internet and Reseller sales.
+
+Query:
+
+sql
+
+Copy
+WITH CTE AS (
+    SELECT 
+    ROUND(SUM(CASE WHEN D.CalendarYear = '2013' THEN T.SalesAmount ELSE 0 END), 2) AS Sales_2013,
+    ROUND(SUM(CASE WHEN D.CalendarYear = '2012' THEN T.SalesAmount ELSE 0 END), 2) AS Sales_2012
+    FROM (
+        SELECT OrderDateKey, SalesAmount
+        FROM dbo.FactResellerSales
+        UNION ALL
+        SELECT OrderDateKey, SalesAmount
+        FROM dbo.FactInternetSales
+    ) T
+    JOIN dbo.DimDate D ON D.DateKey = T.OrderDateKey
+)
+SELECT Sales_2013, Sales_2012, ROUND((Sales_2013 - Sales_2012) / Sales_2012 * 100, 2) AS YoYGrowthPercentage
+FROM CTE
+Explanation:
+
+Tables Involved:
+FactResellerSales, FactInternetSales, DimDate.
+Key Components:
+Union: Combines sales from both tables.
+CTE:
+sql
+
+Copy
+ROUND(SUM(CASE WHEN D.CalendarYear = '2013' THEN T.SalesAmount ELSE 0 END), 2) AS Sales_2013
+Uses conditional aggregation to sum sales for 2013 and 2012 separately.
+Calculation: (Sales_2013 - Sales_2012) / Sales_2012 * 100 computes the YoY growth percentage.
+Logic Flow:
+Combine sales and join with DimDate.
+Aggregate sales for 2012 and 2013 in a CTE.
+Calculate and display the growth percentage.
+Output:
+Columns: Sales_2013, Sales_2012, YoYGrowthPercentage.
+Example: "150000.00, 100000.00, 50.00".
+Notes:
+Assumes non-zero sales in 2012 to avoid division by zero.
+The query doesn’t filter explicitly for 2012/2013, relying on the CASE statements.
+Q.8: Customers with Highest Internet Orders and Sales per Year
+Purpose: Identify the customer with the highest number of internet orders (and sales as a tiebreaker) for each year, displaying year, customer name, address, phone, email, total quantity, and total sales, for customers with more than 5 orders.
+
+Query:
+
+sql
+
+Copy
+WITH CTE AS (
+    SELECT CalendarYear, Customer_Name, AddressLine1, Phone, EmailAddress, Total_Qty, Total_Sales,
+    RANK() OVER(PARTITION BY CalendarYear ORDER BY Total_Qty DESC, Total_Sales DESC) AS RNK
+    FROM (
+        SELECT D.CalendarYear, C.FirstName + ' ' + C.LastName AS Customer_Name, C.AddressLine1, C.Phone, C.EmailAddress,
+        SUM(OrderQuantity) AS Total_Qty, ROUND(SUM(S.SalesAmount), 2) AS Total_Sales
+        FROM dbo.DimCustomer C
+        JOIN dbo.FactInternetSales S ON S.CustomerKey = C.CustomerKey
+        JOIN dbo.DimDate D ON D.DateKey = S.OrderDateKey
+        GROUP BY D.CalendarYear, C.FirstName, C.LastName, C.BirthDate, C.AddressLine1, C.Phone, C.EmailAddress
+        HAVING SUM(OrderQuantity) > 5
+    ) T
+)
+SELECT CalendarYear, Customer_Name, AddressLine1, Phone, EmailAddress, Total_Qty, Total_Sales
+FROM CTE
+WHERE RNK = 1
+Explanation:
+
+Tables Involved:
+DimCustomer, FactInternetSales, DimDate.
+Key Components:
+Inner Query:
+sql
+
+Copy
+SELECT D.CalendarYear, C.FirstName + ' ' + C.LastName AS Customer_Name, ...
+SUM(OrderQuantity) AS Total_Qty, ROUND(SUM(S.SalesAmount), 2) AS Total_Sales
+...
+HAVING SUM(OrderQuantity) > 5
+Aggregates orders and sales by customer and year, filtering for customers with more than 5 orders.
+CTE:
+sql
+
+Copy
+RANK() OVER(PARTITION BY CalendarYear ORDER BY Total_Qty DESC, Total_Sales DESC)
+Ranks customers within each year, prioritizing higher Total_Qty, with Total_Sales as a tiebreaker.
+Filtering: WHERE RNK = 1 selects the top customer per year.
+Logic Flow:
+Aggregate internet sales by customer and year, filtering for >5 orders.
+Rank customers by quantity and sales.
+Select the top customer per year.
+Output:
+Columns: CalendarYear, Customer_Name, AddressLine1, Phone, EmailAddress, Total_Qty, Total_Sales.
+Example: "2013, Jane Smith, 456 Oak St, 555-5678, jane@email.com, 100, 5000.00".
+Notes:
+The HAVING clause ensures only significant customers are considered.
+Ties in both quantity and sales may result in multiple top customers per year.
+General Observations:
+Common Techniques:
+UNION ALL is used frequently to combine Internet and Reseller sales, assuming no duplicates.
+Joins with dimension tables (DimProduct, DimDate, etc.) map sales to meaningful attributes.
+Aggregation (SUM, ROUND) and grouping are central to summarizing data.
+Ranking functions (RANK, TOP) identify top performers.
+Potential Improvements:
+Add error handling for edge cases (e.g., zero sales, missing dates).
+Use ROW_NUMBER() instead of RANK() for unique results in Q.4 and Q.8 if desired.
+Validate date formats and key alignments across tables.
+Performance Considerations:
+Indexes on CustomerKey, ProductKey, OrderDateKey, and SalesTerritoryKey would improve join performance.
+UNION ALL is efficient, but large datasets may require partitioning or filtering earlier.
