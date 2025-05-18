@@ -29,7 +29,7 @@ WHERE DATEDIFF(YEAR, CONVERT(DATE,BirthDate), GETDATE()) > 70
 * Filters for **customers older than 70**.
 
 ```sql
-GROUP BY ... 
+GROUP BY C.CustomerKey, C.FirstName, C.LastName, C.BirthDate, C.AddressLine1, C.Phone, C.EmailAddress 
 ORDER BY Total_Sales DESC
 ```
 
@@ -38,7 +38,7 @@ ORDER BY Total_Sales DESC
 
 ### 🧠 Why This Matters:
 
-* Identifies **senior customers** who are still highly active online.
+* Identifies **customers** who are still highly active online.
 * This data helps in making decisions for **senior-targeted campaigns**, loyalty programs, and personalized offers.
 
 ---
