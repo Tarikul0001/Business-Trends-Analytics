@@ -1,5 +1,6 @@
 # Business-Trends-Analytics
 
+
 ## Project Overview
 The **Business-Trends-Analytics** project is a collection of SQL queries designed to extract actionable insights from the AdventureWorksDW2016 data warehouse. This project focuses on analyzing customer demographics, product sales, regional performance, and year-over-year growth for both Internet and Reseller sales channels. The queries are optimized for Microsoft SQL Server and provide a foundation for business intelligence reporting and decision-making.
 
