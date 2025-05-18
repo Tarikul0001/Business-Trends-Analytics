@@ -1,126 +1,172 @@
 
+---
 
-## **Q.1 Write a query to identify the top 10 over-70-year-old clients with the biggest internet sales. Name, age, phone number, email address, and total sales amount of the consumer are displayed.**
-
-**Purpose:**
-Identify the top 10 customers over 70 years old with the highest total internet sales, displaying their name, age, phone number, email address, and total sales amount.
+## 🔷 **Q.1 Write a query to identify the top 10 over-70-year-old clients with the biggest internet sales. Name, age, phone number, email address, and total sales amount of the consumer are displayed.**
 
 ```sql
 SELECT TOP 10 C.FirstName + ' ' + C.LastName AS Customer_Name, C.AddressLine1, DATEDIFF(YEAR,CONVERT(DATE,BirthDate),GETDATE()) AS Age, C.Phone, C.EmailAddress
 , ROUND (SUM(FIS.SalesAmount),2) AS Total_Sales
+```
+
+### 🔍 Line-by-Line Breakdown:
+
+* `TOP 10`: Limits the output to only the 10 customers with **highest sales**.
+* `C.FirstName + ' ' + C.LastName AS Customer_Name`: Combines first and last name into a single display name.
+* `DATEDIFF(YEAR,CONVERT(DATE,BirthDate),GETDATE()) AS Age`: Calculates the customer's age by subtracting their birth year from the current date.
+* `ROUND (SUM(FIS.SalesAmount),2) AS Total_Sales`: Totals up all **Internet Sales** per customer and rounds to 2 decimal places.
+
+```sql
 FROM dbo.DimCustomer C
 JOIN dbo.FactInternetSales FIS ON C.CustomerKey = FIS.CustomerKey
-WHERE DATEDIFF(YEAR,CONVERT(DATE,BirthDate),GETDATE()) > 70
-GROUP BY C.CustomerKey, C.FirstName, C.LastName, C.BirthDate, C.AddressLine1, C.Phone, C.EmailAddress
+```
+
+* Joins **Customer** and **Internet Sales** tables using the `CustomerKey`.
+
+```sql
+WHERE DATEDIFF(YEAR, CONVERT(DATE,BirthDate), GETDATE()) > 70
+```
+
+* Filters for **customers older than 70**.
+
+```sql
+GROUP BY ... 
 ORDER BY Total_Sales DESC
 ```
 
-**Explanation:**
+* Groups the data per customer to **aggregate** their sales.
+* Sorts by `Total_Sales` in **descending order** so the highest-spending customers are first.
 
-Tables Involved:
-DimCustomer (C): Contains customer information (e.g., FirstName, LastName, BirthDate, AddressLine1, Phone, EmailAddress, CustomerKey).
-FactInternetSales (FIS): Contains internet sales transactions with fields like CustomerKey and SalesAmount.
+### 🧠 Why This Matters:
 
-Key Components:
-Concatenation: C.FirstName + ' ' + C.LastName AS Customer_Name combines the first and last names into a single column.
-Age Calculation: DATEDIFF(YEAR, CONVERT(DATE, BirthDate), GETDATE()) calculates the customer’s age by finding the year difference between BirthDate and the current date (GETDATE()). The CONVERT(DATE, BirthDate) ensures the BirthDate is in a proper date format.
-Aggregation: ROUND(SUM(FIS.SalesAmount), 2) sums the SalesAmount for each customer and rounds to two decimal places.
-Filtering: WHERE DATEDIFF(YEAR, CONVERT(DATE, BirthDate), GETDATE()) > 70 restricts the results to customers over 70 years old.
-Grouping: GROUP BY C.CustomerKey, C.FirstName, C.LastName, C.BirthDate, C.AddressLine1, C.Phone, C.EmailAddress ensures aggregation by unique customers and includes all non-aggregated columns.
-Limiting: TOP 10 restricts the output to the top 10 customers.
-Sorting: ORDER BY Total_Sales DESC sorts results by total sales in descending order.
-Logic Flow:
-Join DimCustomer and FactInternetSales on CustomerKey to link customers with their internet sales.
-Filter for customers over 70 using the WHERE clause.
-Group by customer details to calculate total sales per customer.
-Select the top 10 based on total sales, displaying the required fields
-
+* Identifies **senior customers** who are still highly active online.
+* This data helps in making decisions for **senior-targeted campaigns**, loyalty programs, and personalized offers.
 
 ---
 
-## **Q.2 – Total Sales by Product Category (Internet + Reseller)**
+## 🔷 **Q2: Total Sales for Each Product Category (Internet + Reseller)**
 
 ```sql
-SELECT PC.ProductCategoryKey, PC.EnglishProductCategoryName, ROUND(SUM(SM.SalesAmount),2) Total_Sales
+SELECT PC.ProductCategoryKey, PC.EnglishProductCategoryName, ROUND(SUM(SM.SalesAmount), 2) AS Total_Sales
+```
+
+* Selects each product category and **calculates total sales**.
+* `ROUND(SUM(...), 2)` ensures the output is suitable for reporting.
+
+```sql
 FROM dbo.DimProduct DP
 JOIN (
     SELECT ProductKey, SalesAmount FROM dbo.FactResellerSales
     UNION ALL
     SELECT ProductKey, SalesAmount FROM dbo.FactInternetSales
 ) SM ON SM.ProductKey = DP.ProductKey
+```
+
+* Combines **reseller and internet sales** using `UNION ALL`.
+* Joins this result with the **Product dimension** so each sale is linked to a product.
+
+```sql
 JOIN dbo.DimProductSubcategory PS ON PS.ProductSubcategoryKey = DP.ProductSubcategoryKey
 JOIN dbo.DimProductCategory PC ON PC.ProductCategoryKey = PS.ProductCategoryKey
+```
+
+* Traverses the product hierarchy:
+
+  * Product ➝ Subcategory ➝ Category
+
+```sql
 GROUP BY PC.ProductCategoryKey, PC.EnglishProductCategoryName
 ORDER BY Total_Sales DESC
 ```
 
-**Explanation:**
+* Aggregates and orders by total sales.
 
-* Merges sales from Internet and Reseller.
-* Links each sale to a **product**, its subcategory, and category.
-* Sums sales per category and orders by sales descending.
+### 🧠 Why This Matters:
+
+* Helps the business know **which product categories** are generating the most revenue.
+* Supports **category-level decision making** for promotions, inventory, and forecasting.
 
 ---
 
-## **Q.3 – Total Sales per Month for 2013**
+## 🔷 **Q3: Monthly Sales Totals for 2013**
 
 ```sql
-SELECT D.CalendarYear, D.MonthNumberOfYear, D.EnglishMonthName, ROUND(SUM(S.SalesAmount),2) Total_Sales
-FROM dbo.DimDate D
+SELECT D.CalendarYear, D.MonthNumberOfYear, D.EnglishMonthName, ROUND(SUM(S.SalesAmount), 2) AS Total_Sales
+```
+
+* Shows **year**, **month number**, and **month name**, along with total sales.
+
+```sql
+FROM dbo.DimDate D 
 JOIN (
     SELECT OrderDateKey, SalesAmount FROM dbo.FactResellerSales
     UNION ALL
     SELECT OrderDateKey, SalesAmount FROM dbo.FactInternetSales
 ) S ON S.OrderDateKey = D.DateKey
-WHERE D.CalendarYear = '2013'
-GROUP BY D.CalendarYear, D.MonthNumberOfYear, D.EnglishMonthName
-ORDER BY 2
 ```
 
-**Explanation:**
+* Merges both sales sources.
+* Links sales to the **date dimension** so we can group by month/year.
 
-* Combines both sales sources.
-* Joins them to the `DimDate` table using `OrderDateKey`.
-* Filters for year 2013 and groups by month.
-* Displays sales per month.
+```sql
+WHERE D.CalendarYear = '2013'
+GROUP BY D.CalendarYear, D.MonthNumberOfYear, D.EnglishMonthName
+ORDER BY D.MonthNumberOfYear
+```
+
+* Filters for the **year 2013** only.
+* Groups by **month** to show monthly trends.
+
+### 🧠 Why This Matters:
+
+* Crucial for analyzing **seasonal patterns**.
+* Helps plan for **inventory, marketing** and understand customer behavior throughout the year.
 
 ---
 
-## **Q.4 – Top Sales Region per Country**
+## 🔷 **Q4: Top-Performing Region in Each Country**
 
 ```sql
 WITH CTE AS (
-    SELECT T.SalesTerritoryCountry, T.SalesTerritoryRegion, T.Total_Sales,
-    RANK() OVER(PARTITION BY T.SalesTerritoryCountry ORDER BY T.Total_Sales DESC) AS RANK
-    FROM (
-        SELECT ST.SalesTerritoryRegion, ST.SalesTerritoryCountry, ROUND(SUM(S.SalesAmount),2) Total_Sales
-        FROM dbo.DimSalesTerritory ST
-        JOIN (
-            SELECT SalesTerritoryKey, SalesAmount FROM dbo.FactResellerSales
-            UNION ALL
-            SELECT SalesTerritoryKey, SalesAmount FROM dbo.FactInternetSales
-        ) S ON S.SalesTerritoryKey = ST.SalesTerritoryKey
-        GROUP BY ST.SalesTerritoryRegion, ST.SalesTerritoryCountry
-    ) T
+  SELECT T.SalesTerritoryCountry, T.SalesTerritoryRegion, T.Total_Sales,
+  RANK() OVER(PARTITION BY T.SalesTerritoryCountry ORDER BY T.Total_Sales DESC) AS RANK
+```
+
+* `RANK() OVER (PARTITION BY ...)`: Ranks **regions within each country** by sales.
+* The **Common Table Expression (CTE)** is used to isolate top regions.
+
+```sql
+FROM (
+  SELECT ST.SalesTerritoryRegion, ST.SalesTerritoryCountry, ROUND(SUM(S.SalesAmount), 2) AS Total_Sales
+  FROM dbo.DimSalesTerritory ST
+  JOIN (
+    SELECT SalesTerritoryKey, SalesAmount FROM dbo.FactResellerSales
+    UNION ALL
+    SELECT SalesTerritoryKey, SalesAmount FROM dbo.FactInternetSales
+  ) S ON S.SalesTerritoryKey = ST.SalesTerritoryKey
+  GROUP BY ST.SalesTerritoryRegion, ST.SalesTerritoryCountry
+) T
 )
 SELECT SalesTerritoryCountry, SalesTerritoryRegion, Total_Sales
-FROM CTE
-WHERE RANK = 1
+FROM CTE WHERE RANK = 1
 ORDER BY Total_Sales DESC
 ```
 
-**Explanation:**
+### 🧠 Why This Matters:
 
-* Calculates total sales for each **region in each country**.
-* Uses `RANK()` to find the **top-performing region** (i.e., rank = 1) in each country.
-* Returns country, region, and total sales.
+* Pinpoints the **highest performing region** per country.
+* Informs decisions on **where to allocate resources, staff, or marketing budgets**.
 
 ---
 
-## **Q.5 – Top 2 Products by Quantity Sold**
+## 🔷 **Q5: Top 2 Products by Quantity Sold**
 
 ```sql
 SELECT TOP 2 PC.EnglishProductCategoryName, SUM(OrderQuantity) AS Total_OrderQuantity
+```
+
+* Shows product categories that sold **the most units**, not just value.
+
+```sql
 FROM dbo.DimProduct DP
 JOIN (
     SELECT OrderDateKey, ProductKey, OrderQuantity, SalesAmount FROM dbo.FactResellerSales
@@ -133,91 +179,98 @@ GROUP BY PC.ProductCategoryKey, PC.EnglishProductCategoryName
 ORDER BY Total_OrderQuantity DESC
 ```
 
-**Explanation:**
+### 🧠 Why This Matters:
 
-* Combines Internet and Reseller sales.
-* Groups by **product category**.
-* Sums quantity ordered, then returns **top 2 categories** with the most units sold.
+* Tells us which products are **fast-moving** or high in demand.
+* Useful for **restocking, promotions**, and **supply chain optimization**.
 
 ---
 
-## **Q.6 – Yearly Product Sales and Quantity**
+## 🔷 **Q6: Yearly Sales and Quantity by Product Category**
 
 ```sql
-SELECT D.CalendarYear, PC.EnglishProductCategoryName, ROUND(SUM(SM.SalesAmount),2) Total_Sales, SUM(OrderQuantity) AS Total_OrderQuantity
+SELECT D.CalendarYear, PC.EnglishProductCategoryName, ROUND(SUM(SM.SalesAmount),2) AS Total_Sales, SUM(OrderQuantity) AS Total_OrderQuantity
+```
+
+* Combines **year, category, sales amount**, and **units sold**.
+
+```sql
 FROM dbo.DimProduct DP
-JOIN (
-    SELECT OrderDateKey, ProductKey, OrderQuantity, SalesAmount FROM dbo.FactResellerSales
-    UNION ALL
-    SELECT OrderDateKey, ProductKey, OrderQuantity, SalesAmount FROM dbo.FactInternetSales
-) SM ON SM.ProductKey = DP.ProductKey
-JOIN dbo.DimProductSubcategory PS ON PS.ProductSubcategoryKey = DP.ProductSubcategoryKey
-JOIN dbo.DimProductCategory PC ON PC.ProductCategoryKey = PS.ProductCategoryKey
+JOIN (...) SM ON SM.ProductKey = DP.ProductKey
+JOIN dbo.DimProductSubcategory PS ...
+JOIN dbo.DimProductCategory PC ...
 JOIN dbo.DimDate D ON D.DateKey = SM.OrderDateKey
 GROUP BY D.CalendarYear, PC.ProductCategoryKey, PC.EnglishProductCategoryName
 ```
 
-**Explanation:**
+### 🧠 Why This Matters:
 
-* Reports sales and quantity per **product category and year**.
-* Combines Internet + Reseller sales.
-* Aggregates by year and product category.
+* Offers a **historical performance breakdown** by category.
+* Aids in **year-over-year product trend analysis**.
 
 ---
 
-## **Q.7 – Year-over-Year (YoY) Sales Growth: 2013 vs 2012**
+## 🔷 **Q7: Year-over-Year Sales Growth (2012 vs 2013)**
 
 ```sql
 WITH CTE AS (
-    SELECT 
+  SELECT 
     ROUND(SUM(CASE WHEN D.CalendarYear = '2013' THEN T.SalesAmount ELSE 0 END),2) AS Sales_2013,
     ROUND(SUM(CASE WHEN D.CalendarYear = '2012' THEN T.SalesAmount ELSE 0 END),2) AS Sales_2012
-    FROM (
-        SELECT OrderDateKey, SalesAmount FROM dbo.FactResellerSales
-        UNION ALL
-        SELECT OrderDateKey, SalesAmount FROM dbo.FactInternetSales
-    ) T
-    JOIN dbo.DimDate D ON D.DateKey = T.OrderDateKey
-)
-SELECT Sales_2013, Sales_2012, ROUND((Sales_2013 - Sales_2012) / Sales_2012 * 100, 2) AS YoYGrowthPercentage
-FROM CTE
 ```
 
-**Explanation:**
-
-* Calculates total sales for 2012 and 2013.
-* Computes YoY growth % = ((2013 - 2012) / 2012) \* 100.
-* Shows how much sales increased (or decreased) from 2012 to 2013.
-
----
-
-## **Q.8 – Top Internet Sales Customer per Year**
+* Uses `CASE` to split totals into 2013 and 2012 buckets.
+* `ROUND(SUM(...))` gives neatly formatted numbers.
 
 ```sql
-WITH CTE AS (
-    SELECT CalendarYear, Customer_Name, AddressLine1, Phone, EmailAddress, Total_Qty, Total_Sales,
-    RANK() OVER(PARTITION BY CalendarYear ORDER BY Total_Qty DESC, Total_Sales DESC) AS RNK
-    FROM (
-        SELECT D.CalendarYear, C.FirstName + ' ' + C.LastName AS Customer_Name, C.AddressLine1, C.Phone, C.EmailAddress,
-        SUM(OrderQuantity) AS Total_Qty, ROUND(SUM(S.SalesAmount),2) AS Total_Sales
-        FROM dbo.DimCustomer C
-        JOIN dbo.FactInternetSales S ON S.CustomerKey = C.CustomerKey
-        JOIN dbo.DimDate D ON D.DateKey = S.OrderDateKey
-        GROUP BY D.CalendarYear, C.FirstName, C.LastName, C.BirthDate, C.AddressLine1, C.Phone, C.EmailAddress
-        HAVING SUM(OrderQuantity) > 5
-    ) T
+FROM (
+  SELECT OrderDateKey, SalesAmount FROM dbo.FactResellerSales
+  UNION ALL
+  SELECT OrderDateKey, SalesAmount FROM dbo.FactInternetSales
+) T
+JOIN dbo.DimDate D ON D.DateKey = T.OrderDateKey
 )
-SELECT CalendarYear, Customer_Name, AddressLine1, Phone, EmailAddress, Total_Qty, Total_Sales
+SELECT Sales_2013, Sales_2012, 
+ROUND((Sales_2013 - Sales_2012) / Sales_2012 * 100, 2) AS YoYGrowthPercentage
 FROM CTE
-WHERE RNK = 1
 ```
 
-**Explanation:**
+### 🧠 Why This Matters:
 
-* For each year, finds the **top customer** based on the **highest order quantity**, and breaks ties using total sales.
-* Uses `RANK()` to find the top customer **per year**.
-* Returns contact and sales info for each year's top internet customer.
+* This is a **KPI** — shows business growth year over year.
+* Critical for investors, executives, and planning.
 
 ---
 
-If you'd like, I can help turn these into visual dashboards, optimization recommendations, or provide indexes for performance. Let me know
+## 🔷 **Q8: Top Online Customer by Year**
+
+```sql
+```
+
+
+WITH CTE AS (
+SELECT CalendarYear, Customer\_Name, ..., Total\_Qty, Total\_Sales,
+RANK() OVER(PARTITION BY CalendarYear ORDER BY Total\_Qty DESC, Total\_Sales DESC) AS RNK
+
+````
+
+- `RANK()` gives priority to customers with **most orders**, then **highest spending**.
+- `PARTITION BY CalendarYear`: Finds best customer **per year**.
+
+```sql
+FROM (
+  SELECT D.CalendarYear, ..., SUM(OrderQuantity) AS Total_Qty, ROUND(SUM(S.SalesAmount),2) AS Total_Sales
+  ...
+  HAVING SUM(OrderQuantity) > 5
+) T
+)
+SELECT ...
+FROM CTE WHERE RNK = 1
+````
+
+### 🧠 Why This Matters:
+
+* Recognizes **loyal and high-value customers**.
+* Essential for **CRM, VIP programs**, or targeted communication.
+
+---
