@@ -2,11 +2,11 @@
 
 ## Overview
 
-This documentation provides detailed explanations of SQL queries for analyzing sales data from multiple sales channels. The queries use several tables from a database containing information about customers, products, sales, dates, and more. Below, each query is explained, including the logic, purpose, and key elements.
+This documentation provides detailed explanations of SQL queries for analyzing sales data. The queries use several tables from 'AdventureWorksDW2016' database containing information about customers, products, sales, dates, and more. Below, each query is explained, including the logic, purpose, and key elements.
 
 ---
 
-### **Q1: Top 10 Over-70-Year-Old Clients with the Biggest Internet Sales**
+### **Q.1 Write a query to identify the top 10 over-70-year-old clients with the biggest internet sales. Name, age, phone number, email address, and total sales amount of the consumer are displayed.**
 
 #### Query:
 
@@ -33,7 +33,7 @@ ORDER BY Total_Sales DESC
 
 ---
 
-### **Q2: Total Sales by Product Category (Internet and Reseller)**
+### **Q.2 Write a query to calculate the total sales (Internet and Reseller) for each product category. ProductCategoryKey, EnglishProductCategoryName, and total sales amount of the consumer are displayed.**
 
 #### Query:
 
@@ -63,7 +63,7 @@ ORDER BY Total_Sales DESC
 
 ---
 
-### **Q3: Total Sales by Month for 2013**
+### **Q.3 Write a query to calculate total sales amount for each month in 2013. Display the year, month, and total sales amount.**
 
 #### Query:
 
@@ -92,7 +92,7 @@ ORDER BY 2
 
 ---
 
-### **Q4: Top-Performing Sales Region in Each Country**
+### **Q.4 Write a query to identifies the top-performing sales region in each country based on total sales amount, including both Internet and Reseller sales. Display Country, territory region and total sales amount.**
 
 #### Query:
 
@@ -129,7 +129,7 @@ ORDER BY Total_Sales DESC
 
 ---
 
-### **Q5: Top 2 Products with Highest Quantity Sold (Internet and Reseller)**
+### **Q.5 Write a query to find the top 2 products with the highest quantity sold across both Internet and Reseller sales. Display product category name and total order quantity.**
 
 #### Query:
 
@@ -159,7 +159,7 @@ ORDER BY Total_OrderQuantity DESC
 
 ---
 
-### **Q6: Sales and Quantity for Each Product Category by Calendar Year**
+### **Q.6 Write a query to find all products with the quantity sold and total sales for each calendar year across both Internet and reseller sales. Calendar Year, english product category name, total sales amount and total order quantity are displayed.**
 
 #### Query:
 
@@ -189,7 +189,7 @@ GROUP BY D.CalendarYear, PC.ProductCategoryKey, PC.EnglishProductCategoryName
 
 ---
 
-### **Q7: Year-over-Year Sales Growth (2013 vs. 2012)**
+### **Q.7 Calculate the year-over-year (YoY) sales growth for 2013 compared to 2012.**
 
 #### Query:
 
@@ -219,7 +219,7 @@ FROM CTE
 
 ---
 
-### **Q8: Customer with the Highest Number of Internet Orders and Sales Each Year**
+### **Q.8 Write a query to find the customer who have the highest number of internet orders and sales each year.**
 
 #### Query:
 
