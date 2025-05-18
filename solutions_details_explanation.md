@@ -43,14 +43,14 @@ ORDER BY Total_Sales DESC
 
 ---
 
-## 🔷 **Q2: Total Sales for Each Product Category (Internet + Reseller)**
+## 🔷 **Q.2 Write a query to calculate the total sales (Internet and Reseller) for each product category. ProductCategoryKey, EnglishProductCategoryName, and total sales amount of the consumer are displayed.**
 
 ```sql
 SELECT PC.ProductCategoryKey, PC.EnglishProductCategoryName, ROUND(SUM(SM.SalesAmount), 2) AS Total_Sales
 ```
 
 * Selects each product category and **calculates total sales**.
-* `ROUND(SUM(...), 2)` ensures the output is suitable for reporting.
+* `ROUND(SUM(SM.SalesAmount),2) Total_Sales` ensures the output is suitable for reporting.
 
 ```sql
 FROM dbo.DimProduct DP
@@ -196,7 +196,11 @@ SELECT D.CalendarYear, PC.EnglishProductCategoryName, ROUND(SUM(SM.SalesAmount),
 
 ```sql
 FROM dbo.DimProduct DP
-JOIN (...) SM ON SM.ProductKey = DP.ProductKey
+JOIN (
+    SELECT OrderDateKey, ProductKey, OrderQuantity, SalesAmount FROM dbo.FactResellerSales
+    UNION ALL
+    SELECT OrderDateKey, ProductKey, OrderQuantity, SalesAmount FROM dbo.FactInternetSales
+) SM ON SM.ProductKey = DP.ProductKey
 JOIN dbo.DimProductSubcategory PS ...
 JOIN dbo.DimProductCategory PC ...
 JOIN dbo.DimDate D ON D.DateKey = SM.OrderDateKey
