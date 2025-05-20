@@ -1,5 +1,6 @@
 # Sales Analytics SQL Queries Documentation
 
+
 ## Overview
 
 This documentation provides detailed explanations of SQL queries for analyzing sales data. The queries use several tables from 'AdventureWorksDW2016' database containing information about customers, products, sales, dates, and more. Below, each query is explained, including the logic, purpose, and key elements.
