@@ -96,7 +96,7 @@ Business-Trends-Analytics/
 │   ├── q7_yoy_growth.sql
 │   ├── q8_top_customer_yearly.sql
 │ 
-├── solutions_details_explanation.docx
+├── solutions_details_explanation.txt
 ├── README.md
 ```
 
