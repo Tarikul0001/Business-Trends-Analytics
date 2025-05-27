@@ -117,4 +117,3 @@ For questions or feedback, please open an issue on the GitHub repository or cont
 ## Acknowledgements
 - [Microsoft SQL Server Samples](https://github.com/Microsoft/sql-server-samples/releases/download/adventureworks/AdventureWorksDW2016.bak) for providing the AdventureWorksDW2016 database.
 - The open-source community for inspiration and resources.
-=======
