@@ -1,0 +1,15 @@
+Q.1 Write a query to identify the top 10 over-70-year-old clients with the biggest internet sales. Name, age, phone number, email address, and total sales amount of the consumer are displayed.
+
+Q.2 Write a query to calculate the total sales (Internet and Reseller) for each product category. ProductCategoryKey, EnglishProductCategoryName, and total sales amount of the consumer are displayed.
+
+Q.3 Write a query to calculate total sales amount for each month in 2013. Display the year, month, and total sales amount.
+
+Q.4 Write a query to identify the top-performing sales region in each country based on total sales amount, including both Internet and Reseller sales. Display Country, territory region and total sales amount.
+
+Q.5 Write a query to find the top 2 products with the highest quantity sold across both Internet and Reseller sales. Display product category name and total order quantity.
+
+Q.6 Write a query to find all products with the quantity sold and total sales for each calendar year across both Internet and reseller sales. Calendar Year, english product category name, total sales amount and total order quantity are displayed.
+
+Q.7 Calculate the year-over-year (YoY) sales growth for 2013 compared to 2012.
+
+Q.8 Write a query to find the customer who has the highest number of internet orders and sales each year.
