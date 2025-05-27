@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Business-Trends-Analytics
 
 ## Project Overview
